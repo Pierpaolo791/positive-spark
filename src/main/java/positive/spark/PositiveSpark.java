@@ -48,7 +48,7 @@ public class PositiveSpark implements Serializable {
 
 	private void startStreamProcessing() throws InterruptedException {
 		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
-				.foreachRDD(rdd -> predictEstimatedTimeThenSendToES(rdd));
+				.foreachRDD(rdd -> System.out.println(rdd.toString()));
 		streamingContext.start();
 		streamingContext.awaitTermination();
 
