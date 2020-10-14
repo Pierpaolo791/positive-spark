@@ -38,7 +38,6 @@ public class PositiveSpark implements Serializable {
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(5));
 		try {
-			System.out.println("Start stream processing...");
 			startStreamProcessing();
 		} catch (InterruptedException e) {
 			System.err.println("Error to startStreamProcessing()...");
@@ -50,7 +49,7 @@ public class PositiveSpark implements Serializable {
 	private void startStreamProcessing() throws InterruptedException {
 		System.out.println("Start stream processing...");
 		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
-				.foreachRDD(rdd -> System.out.println("Nuovo RDD"));
+				.foreachRDD(rdd -> System.out.println("Nuovo RDD" + rdd.toString()));
 		streamingContext.start();
 		streamingContext.awaitTermination();
 
@@ -59,10 +58,12 @@ public class PositiveSpark implements Serializable {
 	private JavaInputDStream<ConsumerRecord<String, String>> getMessageStream() {
 		System.out.println("Call getMessageStream()...");
 		Map<String, Object> kafkaParams = SparkConfigurer.getKafkaStreamingConfig();
-		Collection<String> topics = Arrays.asList("telegram-message","telegram-action");
+		Collection<String> topics = Arrays.asList("tap");
 		JavaInputDStream<ConsumerRecord<String, String>> messageStream = KafkaUtils.createDirectStream(streamingContext,
 				LocationStrategies.PreferConsistent(),
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
+		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
+		System.out.println(messageStream.toString());
 		return messageStream;
 	}
 
