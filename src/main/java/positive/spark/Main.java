@@ -23,7 +23,7 @@ import org.apache.spark.streaming.Durations;
 public class Main {
 	private static final Pattern SPACE = Pattern.compile(" ");
 	    public static void main(String[] args) throws Exception {
-	    	 String brokers = "10.0.100.23:9092";
+	    	 String brokers = "10.0.100.25:9092";
 	         String groupId = "consumer-group"; // Kafka Consumer Group
 	         String topics = "tap";
 
