@@ -37,21 +37,21 @@ public class PositiveSpark implements Serializable {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(5));
-		try {
-			startStreamProcessing();
-		} catch (InterruptedException e) {
-			System.err.println("Error to startStreamProcessing()...");
-			e.printStackTrace();
-		}
+		startStreamProcessing();
 
 	}
 
-	private void startStreamProcessing() throws InterruptedException {
+	private void startStreamProcessing() {
 		System.out.println("Start stream processing...");
 		getMessageStream()//.mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
 			.foreachRDD(rdd -> System.out.println("Nuovo RDD" + rdd.toString()));
 		streamingContext.start();
-		streamingContext.awaitTermination();
+		try {
+			streamingContext.awaitTermination();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
@@ -62,6 +62,8 @@ public class PositiveSpark implements Serializable {
 		JavaInputDStream<ConsumerRecord<String, String>> messageStream = KafkaUtils.createDirectStream(streamingContext,
 				LocationStrategies.PreferConsistent(),
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
+		System.out.println("PRINT message stream");
+		messageStream.print();
 		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
 		System.out.println(messageStream.toString());
 		return messageStream;
