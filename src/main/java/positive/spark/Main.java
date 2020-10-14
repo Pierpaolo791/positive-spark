@@ -24,37 +24,38 @@ public class Main {
 		
 	    private static final Pattern SPACE = Pattern.compile(" ");
 	    public static void main(String[] args) throws Exception {
-	    	String brokers = "10.0.100.25:9092";
-	        String groupId = "consumer1-spark1";
-	        String topics = "tap";
+	        // StreamingExamples.setStreamingLogLevels();
+	    	 String brokers = "10.0.100.25:9092";
+	         String groupId = "consumer-group"; // Kafka Consumer Group
+	         String topics = "tap";
 
-	        // Create context with a 2 seconds batch interval
-	        SparkConf sparkConf = new SparkConf().setAppName("JavaDirectKafkaWordCount");
-	        JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, Durations.seconds(2));
+	         // Create context with a 2 seconds batch interval
+	         SparkConf sparkConf = new SparkConf().setAppName("JavaDirectKafkaWordCount");
+	         JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, Durations.seconds(2));
 
-	        Set<String> topicsSet = new HashSet<>(Arrays.asList(topics.split(",")));
-	        Map<String, Object> kafkaParams = new HashMap<>();
-	        kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
-	        kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-	        kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-	        kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+	         Set<String> topicsSet = new HashSet<>(Arrays.asList(topics.split(",")));
+	         Map<String, Object> kafkaParams = new HashMap<>();
+	         kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+	         kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+	         kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+	         kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
-	        // Create direct kafka stream with brokers and topics
-	        JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(
-	            jssc,
-	            LocationStrategies.PreferConsistent(),
-	            ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
+	         // Create direct kafka stream with brokers and topics
+	         JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(
+	                 jssc,
+	                 LocationStrategies.PreferConsistent(),
+	                 ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
 
-	        // Get the lines, split them into words, count the words and print
-	        JavaDStream<String> lines = messages.map(ConsumerRecord::value);
-	        JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(SPACE.split(x)).iterator());
-	        JavaPairDStream<String, Integer> wordCounts = words.mapToPair(s -> new Tuple2<>(s, 1))
-	            .reduceByKey((i1, i2) -> i1 + i2);
-	        wordCounts.print();
+	         // Get the lines, split them into words, count the words and print
+	         JavaDStream<String> lines = messages.map(ConsumerRecord::value);
+	         JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(SPACE.split(x)).iterator());
+	         JavaPairDStream<String, Integer> wordCounts = words.mapToPair(s -> new Tuple2<>(s, 1))
+	                 .reduceByKey((i1, i2) -> i1 + i2);
+	         wordCounts.print();
 
-	        // Start the computation
-	        jssc.start();
-	        jssc.awaitTermination();
+	         // Start the computation
+	         jssc.start();
+	         jssc.awaitTermination();
 	}
 
 }
