@@ -48,14 +48,16 @@ public class PositiveSpark implements Serializable {
 	}
 
 	private void startStreamProcessing() throws InterruptedException {
+		System.out.println("Start stream processing...");
 		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
-				.foreachRDD(rdd -> System.out.println(rdd.toString()));
+				.foreachRDD(rdd -> System.out.println("Nuovo RDD"));
 		streamingContext.start();
 		streamingContext.awaitTermination();
 
 	}
 
 	private JavaInputDStream<ConsumerRecord<String, String>> getMessageStream() {
+		System.out.println("Call getMessageStream()...");
 		Map<String, Object> kafkaParams = SparkConfigurer.getKafkaStreamingConfig();
 		Collection<String> topics = Arrays.asList("telegram-message","telegram-action");
 		JavaInputDStream<ConsumerRecord<String, String>> messageStream = KafkaUtils.createDirectStream(streamingContext,
