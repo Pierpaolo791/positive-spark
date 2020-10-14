@@ -38,6 +38,7 @@ public class PositiveSpark implements Serializable {
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(5));
 		try {
+			System.out.println("Start stream processing...");
 			startStreamProcessing();
 		} catch (InterruptedException e) {
 			System.err.println("Error to startStreamProcessing()...");
@@ -56,7 +57,7 @@ public class PositiveSpark implements Serializable {
 
 	private JavaInputDStream<ConsumerRecord<String, String>> getMessageStream() {
 		Map<String, Object> kafkaParams = SparkConfigurer.getKafkaStreamingConfig();
-		Collection<String> topics = Arrays.asList("telegram-message");
+		Collection<String> topics = Arrays.asList("telegram-message","telegram-action");
 		JavaInputDStream<ConsumerRecord<String, String>> messageStream = KafkaUtils.createDirectStream(streamingContext,
 				LocationStrategies.PreferConsistent(),
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
@@ -65,6 +66,7 @@ public class PositiveSpark implements Serializable {
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
+		System.out.println("call predictEstimatedTimeThenSendToEs");
 		if (!dataset.isEmpty()) {
 			dataset = dataset.drop("platform", "userId", "message", "groupId");
 			dataset.show();
