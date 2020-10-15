@@ -44,8 +44,9 @@ public class PositiveSpark implements Serializable {
 	private void startStreamProcessing() {
 		System.out.println("Start stream processing...");
 		getMessageStream()
-			.map(ConsumerRecord::value)
-			.foreachRDD(rdd ->predictEstimatedTimeThenSendToES(rdd));
+			.map(x -> x.value())
+			.print();
+			//.foreachRDD(rdd ->predictEstimatedTimeThenSendToES(rdd));
 		
 		streamingContext.start();
 		try {
