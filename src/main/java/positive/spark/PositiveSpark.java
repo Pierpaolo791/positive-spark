@@ -43,10 +43,8 @@ public class PositiveSpark implements Serializable {
 
 	private void startStreamProcessing() {
 		System.out.println("Start stream processing...");
-		getMessageStream()
-			.map(x -> x.value())
-			.print();
-			//.foreachRDD(rdd ->predictEstimatedTimeThenSendToES(rdd));
+		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
+			.foreachRDD(rdd ->predictEstimatedTimeThenSendToES(rdd));
 		
 		streamingContext.start();
 		try {
@@ -66,9 +64,7 @@ public class PositiveSpark implements Serializable {
 				LocationStrategies.PreferConsistent(),
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
 		System.out.println("PRINT message stream");
-		messageStream.print();
 		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
-		System.out.println(messageStream.toString());
 		return messageStream;
 	}
 
