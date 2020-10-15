@@ -1,9 +1,11 @@
 package positive.spark.config;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.spark.SparkConf;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 public class SparkConfigurer {
@@ -14,6 +16,8 @@ public class SparkConfigurer {
 		sparkConf.set("es.nodes", "10.0.100.51");
 		sparkConf.set("es.resource", "tap/positive");
 		sparkConf.set("es.input.json", "yes");
+		sparkConf.set("spark.serializer","org.apache.spark.serializer.KryoSerialize");
+		sparkConf.registerKryoClasses((Class<ConsumerRecord<String, String>>[] )Arrays.asList(ConsumerRecord.class).toArray());
 	    //sparkConf.set("es.nodes.wan.only", "true");
 		return sparkConf;
 	}
