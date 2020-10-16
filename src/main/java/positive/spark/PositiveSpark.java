@@ -3,6 +3,7 @@ package positive.spark;
 import static org.apache.spark.sql.functions.current_timestamp;
 import static org.apache.spark.sql.functions.lit;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +18,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.RelationalGroupedDataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.types.DataTypes;
@@ -31,6 +33,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
+import com.vader.sentiment.analyzer.SentimentAnalyzer;
 
 import positive.spark.config.SparkConfigurer;
 import scala.Tuple2;
@@ -78,7 +81,7 @@ public class PositiveSpark implements Serializable {
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
-		Dataset<Row> datasetGroupingByUserId = dataset.groupBy(dataset.col("userId")).sum("message");
+		
 		
 		if (!dataset.isEmpty()) {
 			//dataset.show(); 
@@ -92,10 +95,22 @@ public class PositiveSpark implements Serializable {
 								 })));*/
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 			
+			SentimentAnalyzer sentimentAnalyzer = null;
+			try {
+				sentimentAnalyzer = new SentimentAnalyzer(dataset.colRegex("message").toString());
+				sentimentAnalyzer.analyze();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+			
+			dataset = dataset.withColumn("polarPositive", lit(sentimentAnalyzer.getPolarity().get("positive")).cast(DataTypes.FloatType));
 			
 			
 			dataset.show();
-			datasetGroupingByUserId.show();
+			RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
+			Dataset<Row> datasetGroupingByUserIdPositive = datasetGroupingByUser.sum("polarPositive");
+			//Dataset<Row> datasetGroupingByUserIdNegative = datasetGroupingByUser.sum("polarNegative");
+			datasetGroupingByUserIdPositive.show();
 			//dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
 			//SentimentAnalyzer helloWorld = new Sentiment()
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
