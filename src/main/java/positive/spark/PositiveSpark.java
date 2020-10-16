@@ -48,7 +48,7 @@ public class PositiveSpark implements Serializable {
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
-				Durations.seconds(10));
+				Durations.seconds(15));
 		startStreamProcessing();
 
 	}
@@ -93,10 +93,10 @@ public class PositiveSpark implements Serializable {
 									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 								 })));*/
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-			
+			System.out.println(dataset.encoder().schema().getFieldIndex("message").get().toString());
 			SentimentAnalyzer sentimentAnalyzer = null;
 			try {
-				System.out.println((String)dataset.collectAsList().get(0).getAs("message"));
+				//System.out.println((String)dataset.collectAsList().get(0).getAs("message"));
 				sentimentAnalyzer = new SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("message"));
 				sentimentAnalyzer.analyze();
 			} catch (IOException e) {
