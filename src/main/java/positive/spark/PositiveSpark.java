@@ -74,7 +74,7 @@ public class PositiveSpark implements Serializable {
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		if (!dataset.isEmpty()) {
-			dataset.show();
+			
 			dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
 							RowEncoder.apply(new StructType(new StructField[] {
@@ -84,7 +84,7 @@ public class PositiveSpark implements Serializable {
 									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 								 })));
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-		
+			dataset.show();
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
 	}
