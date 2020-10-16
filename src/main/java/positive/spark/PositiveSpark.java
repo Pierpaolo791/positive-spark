@@ -48,7 +48,7 @@ public class PositiveSpark implements Serializable {
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
-				Durations.seconds(80));
+				Durations.seconds(10));
 		startStreamProcessing();
 
 	}
@@ -97,6 +97,7 @@ public class PositiveSpark implements Serializable {
 			
 			SentimentAnalyzer sentimentAnalyzer = null;
 			try {
+				System.out.println(dataset.col("message").toString());
 				sentimentAnalyzer = new SentimentAnalyzer(dataset.col("message").toString());
 				sentimentAnalyzer.analyze();
 			} catch (IOException e) {
