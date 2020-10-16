@@ -6,7 +6,10 @@ import static org.apache.spark.sql.functions.lit;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+
+import javax.sound.sampled.LineListener;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.api.java.JavaRDD;
@@ -27,6 +30,8 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
+import com.vader.sentiment.analyzer.SentimentAnalyzer;
+
 import positive.spark.config.SparkConfigurer;
 import scala.Tuple2;
 
@@ -40,7 +45,7 @@ public class PositiveSpark implements Serializable {
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
-				Durations.seconds(5));
+				Durations.seconds(20));
 		startStreamProcessing();
 
 	}
@@ -84,9 +89,11 @@ public class PositiveSpark implements Serializable {
 									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 								 })));*/
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-	
+			
 			
 			dataset.show();
+			dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
+			//SentimentAnalyzer helloWorld = new Sentiment()
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
 	}
