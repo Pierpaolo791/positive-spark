@@ -78,7 +78,7 @@ public class PositiveSpark implements Serializable {
 									new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
-									new StructField("groupId", DataTypes.LongType, true, Metadata.empty()),
+									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 								 })));
 
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
