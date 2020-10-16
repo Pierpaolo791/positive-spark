@@ -97,7 +97,7 @@ public class PositiveSpark implements Serializable {
 			
 			SentimentAnalyzer sentimentAnalyzer = null;
 			try {
-				sentimentAnalyzer = new SentimentAnalyzer(dataset.colRegex("message").toString());
+				sentimentAnalyzer = new SentimentAnalyzer(dataset.col("message").toString());
 				sentimentAnalyzer.analyze();
 			} catch (IOException e) {
 				e.printStackTrace();
