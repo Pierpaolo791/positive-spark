@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapFunction;
+import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
@@ -44,7 +45,7 @@ public class PositiveSpark implements Serializable {
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
-				Durations.seconds(20));
+				Durations.seconds(80));
 		startStreamProcessing();
 
 	}
@@ -77,8 +78,10 @@ public class PositiveSpark implements Serializable {
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
+		Dataset<Row> datasetGroupingByUserId = dataset.groupBy(dataset.col("userId")).sum("message");
+		
 		if (!dataset.isEmpty()) {
-			dataset.show(); 
+			//dataset.show(); 
 			/*dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
 							RowEncoder.apply(new StructType(new StructField[] {
@@ -90,8 +93,10 @@ public class PositiveSpark implements Serializable {
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 			
 			
+			
 			dataset.show();
-			dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
+			datasetGroupingByUserId.show();
+			//dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
 			//SentimentAnalyzer helloWorld = new Sentiment()
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
