@@ -21,6 +21,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.github.apanimesh061</groupId>
+			<artifactId>vader-sentiment-analyzer</artifactId>
+			<version>1.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_2.12</artifactId>
 			<version>3.0.0</version>
@@ -39,13 +45,27 @@
 			<artifactId>spark-streaming-kafka-0-10_2.12</artifactId>
 			<version>3.0.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch-hadoop</artifactId>
 			<version>7.8.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>8.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.6</version>
+		</dependency>
 	</dependencies>
 
 	<build>
