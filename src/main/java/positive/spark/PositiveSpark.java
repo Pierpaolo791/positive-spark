@@ -75,14 +75,14 @@ public class PositiveSpark implements Serializable {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		if (!dataset.isEmpty()) {
 			dataset.show(); 
-			dataset = dataset
+			/*dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
 							RowEncoder.apply(new StructType(new StructField[] {
 									new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
-								 })));
+								 })));*/
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 	
 			
