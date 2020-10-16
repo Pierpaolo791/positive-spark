@@ -22,6 +22,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
 import positive.spark.config.SparkConfigurer;
 import scala.Tuple2;
@@ -82,7 +83,7 @@ public class PositiveSpark implements Serializable {
 									new StructField("groupId", DataTypes.DoubleType, true, Metadata.empty()),
 								 })));
 			
-			System.out.println("Nuovo dataset: \n"+dataset.toString());
+			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
 	}
 

@@ -16,9 +16,6 @@ public class SparkConfigurer {
 		sparkConf.set("es.nodes", "10.0.100.51");
 		sparkConf.set("es.resource", "tap/positive");
 		sparkConf.set("es.input.json", "yes");
-		//sparkConf.set("spark.serializer","org.apache.spark.serializer.KryoSerialize");
-		//sparkConf.set("spark.serializer","org.apache.spark.serializer.KryoSerialize");
-	    //sparkConf.registerKryoClasses(Arrays.asList(classOf[ConsumerRecord[_, _]]).toArray.asInstanceOf[Array[Class[_]]])
 		return sparkConf;
 	}
 	
