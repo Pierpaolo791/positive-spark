@@ -96,8 +96,8 @@ public class PositiveSpark implements Serializable {
 			
 			SentimentAnalyzer sentimentAnalyzer = null;
 			try {
-				System.out.println((String)dataset.collectAsList().get(0).getAs("polarPositive"));
-				sentimentAnalyzer = new SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("polarPositive"));
+				System.out.println((String)dataset.collectAsList().get(0).getAs("message"));
+				sentimentAnalyzer = new SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("message"));
 				sentimentAnalyzer.analyze();
 			} catch (IOException e) {
 				e.printStackTrace();
