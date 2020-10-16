@@ -76,7 +76,7 @@ public class PositiveSpark implements Serializable {
 					.map((MapFunction<Row, Row>) row -> row, 
 							RowEncoder.apply(new StructType(new StructField[] {
 									new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
-									new StructField("userId", DataTypes.LongType, true, Metadata.empty()),
+									new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("groupId", DataTypes.LongType, true, Metadata.empty()),
 								 })));
