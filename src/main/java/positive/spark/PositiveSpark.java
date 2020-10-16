@@ -51,7 +51,6 @@ public class PositiveSpark implements Serializable {
 		try {
 			streamingContext.awaitTermination();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -72,7 +71,6 @@ public class PositiveSpark implements Serializable {
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		if (!dataset.isEmpty()) {
-			dataset = dataset.drop("platform", "userId", "message", "groupId");
 			dataset.show();
 			dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
@@ -82,7 +80,7 @@ public class PositiveSpark implements Serializable {
 									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("groupId", DataTypes.DoubleType, true, Metadata.empty()),
 								 })));
-			
+
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
 	}
