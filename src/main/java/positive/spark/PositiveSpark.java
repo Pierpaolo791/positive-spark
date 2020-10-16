@@ -30,7 +30,6 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
-import com.vader.sentiment.analyzer.SentimentAnalyzer;
 
 import positive.spark.config.SparkConfigurer;
 import scala.Tuple2;
