@@ -82,7 +82,6 @@ public class PositiveSpark implements Serializable {
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		
-		
 		if (!dataset.isEmpty()) {
 			//dataset.show(); 
 			/*dataset = dataset
@@ -97,8 +96,8 @@ public class PositiveSpark implements Serializable {
 			
 			SentimentAnalyzer sentimentAnalyzer = null;
 			try {
-				System.out.println(dataset.col("message").toString());
-				sentimentAnalyzer = new SentimentAnalyzer(dataset.col("message").toString());
+				System.out.println((String)dataset.collectAsList().get(0).getAs("polarPositive"));
+				sentimentAnalyzer = new SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("polarPositive"));
 				sentimentAnalyzer.analyze();
 			} catch (IOException e) {
 				e.printStackTrace();
