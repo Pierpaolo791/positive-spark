@@ -1,5 +1,8 @@
 package positive.spark;
 
+import static org.apache.spark.sql.functions.current_timestamp;
+import static org.apache.spark.sql.functions.lit;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,6 +83,7 @@ public class PositiveSpark implements Serializable {
 									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 								 })));
+			dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 
 			JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 		}
