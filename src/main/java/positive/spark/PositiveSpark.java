@@ -101,7 +101,7 @@ public class PositiveSpark implements Serializable {
 			dataset = dataset.map( (MapFunction<Row, Row>) row -> {
 				Row myRow = row;
 				myRow.schema().add(new StructField("positive",DataTypes.FloatType, 
-						true, Metadata.fromJson("\"positive\":"+"0.123")));
+						true, Metadata.fromJson("{\"positive\":"+"0.123}")));
 				return myRow; 
 			},RowEncoder.apply(schema));
 			
