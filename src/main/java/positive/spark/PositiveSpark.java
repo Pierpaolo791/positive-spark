@@ -5,6 +5,7 @@ import static org.apache.spark.sql.functions.lit;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import javax.sound.sampled.LineListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
@@ -82,10 +84,15 @@ public class PositiveSpark implements Serializable {
 	}
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
-		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		
-		if (!dataset.isEmpty()) {
-			
+		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
+	
+
+			dataset.select("message").collectAsList();
+			dataset.map(( MapFunction<Row,Row>) row -> {
+				RowFactory.create(row, row.getAs("message").toString().toLowerCase()); 
+			}
+			, RowEncoder.apply(dataset.schema()));
 			//dataset.show(); 
 			/*dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
@@ -98,16 +105,11 @@ public class PositiveSpark implements Serializable {
 			/*dataset = dataset.map((MapFunction<Row, Row>) row -> row.
 					RowEncoder.apply(dataset.schema().add(new StructField("positive",DataTypes.FloatType,true,0.10)) )
 					);*/
-			StructType schema = dataset.schema();
-			dataset = dataset.map( (MapFunction<Row, Row>) row -> {
-				return RowFactory.create(row.schema().add(new StructField("positive",DataTypes.FloatType, 
-						true, Metadata.fromJson("{\"positive\":"+"0.123}"))));
-			
-			},RowEncoder.apply(schema));
-			
+		
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-			dataset.show();
+			dataset = dataset.withColumn(colName, col, metadata)
 			
+		
 			/*RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
 			
 			
