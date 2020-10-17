@@ -86,14 +86,14 @@ public class PositiveSpark implements Serializable {
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
 		
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
-	
+		if (dataset.isEmpty()) return; 
 
-			dataset.select("message").collectAsList();
 			dataset.map(( MapFunction<Row,Row>) row -> {
-				RowFactory.create(row, row.getAs("message").toString().toLowerCase()); 
+				return RowFactory.create(row, row.getAs("message").toString().toLowerCase()); 
 			}
-			, RowEncoder.apply(dataset.schema()));
-			//dataset.show(); 
+			, RowEncoder.apply(dataset.schema().add(DataTypes.createStructField("messageLower", DataTypes.StringType, false))));
+			
+			dataset.show(); 
 			/*dataset = dataset
 					.map((MapFunction<Row, Row>) row -> row, 
 							RowEncoder.apply(new StructType(new StructField[] {
@@ -107,7 +107,6 @@ public class PositiveSpark implements Serializable {
 					);*/
 		
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-			dataset = dataset.withColumn(colName, col, metadata)
 			
 		
 			/*RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
@@ -134,7 +133,7 @@ public class PositiveSpark implements Serializable {
 			//dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
 			//SentimentAnalyzer helloWorld = new Sentiment()
 			//JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
-		}
+		
 	}
 
 }
