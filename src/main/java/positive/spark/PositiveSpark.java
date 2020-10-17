@@ -60,8 +60,8 @@ public class PositiveSpark implements Serializable {
 	private void startStreamProcessing() {
 		System.out.println("Start stream processing...");
 		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
-			.foreachRDD(rdd ->predictEstimatedTimeThenSendToES(rdd));
-		
+				.foreachRDD(rdd -> predictEstimatedTimeThenSendToES(rdd));
+
 		streamingContext.start();
 		try {
 			streamingContext.awaitTermination();
@@ -84,56 +84,59 @@ public class PositiveSpark implements Serializable {
 	}
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
-		
-		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
-		if (dataset.isEmpty()) return; 
 
-			dataset.map(( MapFunction<Row,Row>) row -> {
-				return RowFactory.create(row, row.getAs("message").toString().toLowerCase()); 
-			}
-			, RowEncoder.apply(dataset.schema().add(DataTypes.createStructField("messageLower", DataTypes.StringType, false))));
-			
-			dataset.show(); 
-			/*dataset = dataset
-					.map((MapFunction<Row, Row>) row -> row, 
-							RowEncoder.apply(new StructType(new StructField[] {
-									new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
-									new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
-									new StructField("message", DataTypes.StringType, true, Metadata.empty()),
-									new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
-								 })));*/
-			/*dataset = dataset.map((MapFunction<Row, Row>) row -> row.
-					RowEncoder.apply(dataset.schema().add(new StructField("positive",DataTypes.FloatType,true,0.10)) )
-					);*/
-		
-			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-			
-		
-			/*RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
-			
-			
-			
-			SentimentAnalyzer sentimentAnalyzer = null;
-			try {
-				//System.out.println((String)dataset.collectAsList().get(0).getAs("message"));
-				sentimentAnalyzer = new SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("message"));
-				sentimentAnalyzer.analyze();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} 
-			
-			dataset = dataset.withColumn("polarPositive", lit(sentimentAnalyzer.getPolarity().get("positive")).cast(DataTypes.FloatType));
-			*/
-			
-			//dataset.show();
-			//RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
-			//Dataset<Row> datasetGroupingByUserIdPositive = datasetGroupingByUser.sum("polarPositive");
-			//Dataset<Row> datasetGroupingByUserIdNegative = datasetGroupingByUser.sum("polarNegative");
-			//datasetGroupingByUserIdPositive.show();
-			//dataset.collectAsList().forEach( x -> System.out.println((String)x.getAs("message")));
-			//SentimentAnalyzer helloWorld = new Sentiment()
-			//JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
-		
+		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
+		if (dataset.isEmpty())
+			return;
+		/*
+		dataset.map((MapFunction<Row, Row>) row -> {
+			return RowFactory.create(row, row.getAs("message").toString().toLowerCase());
+		}, RowEncoder
+				.apply(dataset.schema().add(DataTypes.createStructField("messageLower", DataTypes.StringType, false))));
+		*/
+		//dataset.show();
+		dataset = dataset.map((MapFunction<Row, Row>) row -> {
+			return RowFactory.create(row,  row.getAs("message").toString().toLowerCase());
+		}, RowEncoder.apply(new StructType(
+				new StructField[] { new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("messageLower", DataTypes.StringType, true, Metadata.empty()), })));
+		dataset.show();
+
+		dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
+
+		/*
+		 * RelationalGroupedDataset datasetGroupingByUser =
+		 * dataset.groupBy(dataset.col("userId"));
+		 * 
+		 * 
+		 * 
+		 * SentimentAnalyzer sentimentAnalyzer = null; try {
+		 * //System.out.println((String)dataset.collectAsList().get(0).getAs("message"))
+		 * ; sentimentAnalyzer = new
+		 * SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("message"));
+		 * sentimentAnalyzer.analyze(); } catch (IOException e) { e.printStackTrace(); }
+		 * 
+		 * dataset = dataset.withColumn("polarPositive",
+		 * lit(sentimentAnalyzer.getPolarity().get("positive")).cast(DataTypes.FloatType
+		 * ));
+		 */
+
+		// dataset.show();
+		// RelationalGroupedDataset datasetGroupingByUser =
+		// dataset.groupBy(dataset.col("userId"));
+		// Dataset<Row> datasetGroupingByUserIdPositive =
+		// datasetGroupingByUser.sum("polarPositive");
+		// Dataset<Row> datasetGroupingByUserIdNegative =
+		// datasetGroupingByUser.sum("polarNegative");
+		// datasetGroupingByUserIdPositive.show();
+		// dataset.collectAsList().forEach( x ->
+		// System.out.println((String)x.getAs("message")));
+		// SentimentAnalyzer helloWorld = new Sentiment()
+		// JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
+
 	}
 
 }
