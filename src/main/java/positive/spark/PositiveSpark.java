@@ -21,6 +21,7 @@ import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.RelationalGroupedDataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
@@ -99,10 +100,9 @@ public class PositiveSpark implements Serializable {
 					);*/
 			StructType schema = dataset.schema();
 			dataset = dataset.map( (MapFunction<Row, Row>) row -> {
-				Row myRow = row;
-				myRow.schema().add(new StructField("positive",DataTypes.FloatType, 
-						true, Metadata.fromJson("{\"positive\":"+"0.123}")));
-				return myRow; 
+				return RowFactory.create(row.schema().add(new StructField("positive",DataTypes.FloatType, 
+						true, Metadata.fromJson("{\"positive\":"+"0.123}"))));
+			
 			},RowEncoder.apply(schema));
 			
 			dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
