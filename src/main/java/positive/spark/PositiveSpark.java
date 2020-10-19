@@ -84,29 +84,26 @@ public class PositiveSpark implements Serializable {
 	}
 
 	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
-
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		if (dataset.isEmpty())
 			return;
-		/*
-		dataset.map((MapFunction<Row, Row>) row -> {
-			return RowFactory.create(row, row.getAs("message").toString().toLowerCase());
-		}, RowEncoder
-				.apply(dataset.schema().add(DataTypes.createStructField("messageLower", DataTypes.StringType, false))));
-		*/
-		//dataset.show();
+
 		dataset = dataset.map((MapFunction<Row, Row>) row -> {
-			return RowFactory.create(row,  row.getAs("message").toString().toLowerCase());
+			return RowFactory.create(row.get(0),row.get(1),row.get(2),row.get(3),row.getAs("message").toString().toLowerCase());
 		}, RowEncoder.apply(new StructType(
-				new StructField[] { new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
+				new StructField[] { 
+						new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("messageLower", DataTypes.StringType, true, Metadata.empty()), })));
 		dataset.show();
+		
 
+		
+		
 		dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
-
+		
 		/*
 		 * RelationalGroupedDataset datasetGroupingByUser =
 		 * dataset.groupBy(dataset.col("userId"));
@@ -125,10 +122,10 @@ public class PositiveSpark implements Serializable {
 		 */
 
 		// dataset.show();
-		// RelationalGroupedDataset datasetGroupingByUser =
-		// dataset.groupBy(dataset.col("userId"));
-		// Dataset<Row> datasetGroupingByUserIdPositive =
-		// datasetGroupingByUser.sum("polarPositive");
+		//RelationalGroupedDataset datasetGroupingByUser =
+		//dataset.groupBy(dataset.col("userId"));
+		//Dataset<Row> datasetGroupingByUserIdPositive =
+		 //datasetGroupingByUser.sum("polarPositive");
 		// Dataset<Row> datasetGroupingByUserIdNegative =
 		// datasetGroupingByUser.sum("polarNegative");
 		// datasetGroupingByUserIdPositive.show();
