@@ -147,8 +147,8 @@ public class PositiveSpark implements Serializable {
 						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("positivity", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("negativity", DataTypes.StringType, true, Metadata.empty())});
+						new StructField("positivity", DataTypes.FloatType, true, Metadata.empty()),
+						new StructField("negativity", DataTypes.FloatType, true, Metadata.empty())});
 	}
 	
 	private float[] getPositiveAndNegativeSentimentAnalysis(String text) {
