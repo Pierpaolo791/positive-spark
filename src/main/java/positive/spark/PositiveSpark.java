@@ -60,7 +60,7 @@ public class PositiveSpark implements Serializable {
 	private void startStreamProcessing() {
 		System.out.println("Start stream processing...");
 		getMessageStream().mapToPair(record -> new Tuple2<>(record.key(), record.value())).map(tuple2 -> tuple2._2)
-				.foreachRDD(rdd -> predictEstimatedTimeThenSendToES(rdd));
+				.foreachRDD(rdd -> makeSentimentAnalysisThenSendToEsAndKafka(rdd));
 
 		streamingContext.start();
 		try {
@@ -83,26 +83,16 @@ public class PositiveSpark implements Serializable {
 		return messageStream;
 	}
 
-	private void predictEstimatedTimeThenSendToES(JavaRDD<String> rdd) {
+	private void makeSentimentAnalysisThenSendToEsAndKafka(JavaRDD<String> rdd) {
 		Dataset<Row> dataset = spark.convertJsonRDDtoDataset(rdd);
 		if (dataset.isEmpty())
 			return;
 
-		dataset = dataset.map((MapFunction<Row, Row>) row -> {
-			return RowFactory.create(row.get(0),row.get(1),row.get(2),row.get(3),row.getAs("message").toString().toLowerCase());
-		}, RowEncoder.apply(new StructType(
-				new StructField[] { 
-						new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
-						new StructField("messageLower", DataTypes.StringType, true, Metadata.empty()), })));
-		dataset.show();
-		
-
-		
+		dataset = dataset.map((MapFunction<Row, Row>) row -> getRowWithPositivityAndNegativity(row),
+				RowEncoder.apply(getStructTypeWithPositivityAndNegativity()));
 		
 		dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
+		dataset.show();
 		
 		/*
 		 * RelationalGroupedDataset datasetGroupingByUser =
@@ -135,5 +125,45 @@ public class PositiveSpark implements Serializable {
 		// JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
-
+		
+	
+	private Row getRowWithPositivityAndNegativity(Row row) {
+		float[] posAndNeg = getPositiveAndNegativeSentimentAnalysis(row.getAs("message"));
+		return RowFactory.create(
+				row.getAs("platform"),
+				row.getAs("userId"),
+				row.getAs("message"),
+				row.getAs("groupId"),
+				posAndNeg[0],
+				posAndNeg[1]
+			);
+	}
+	
+	private StructType getStructTypeWithPositivityAndNegativity() {
+		return
+		new StructType(
+				new StructField[] { 
+						new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("positivity", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("negativity", DataTypes.StringType, true, Metadata.empty())});
+	}
+	
+	private float[] getPositiveAndNegativeSentimentAnalysis(String text) {
+		SentimentAnalyzer sentimentAnalyzer = null;
+		try {
+			sentimentAnalyzer = new SentimentAnalyzer(text);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		sentimentAnalyzer.analyze();
+	
+		return new float[]{
+				sentimentAnalyzer.getPolarity().get("positive"),
+				sentimentAnalyzer.getPolarity().get("negative")
+		};
+	}
 }
