@@ -94,6 +94,14 @@ public class PositiveSpark implements Serializable {
 		dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 		dataset.show();
 		
+		RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
+		Dataset<Row> datasetGroupingByUserIdPositive = datasetGroupingByUser.avg("positivity");
+		Dataset<Row> datasetGroupingByUserIdNegative = datasetGroupingByUser.avg("negativity");
+		
+		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive); 
+		
+		avgNegativeAndPositive.show();
+		
 		/*
 		 * RelationalGroupedDataset datasetGroupingByUser =
 		 * dataset.groupBy(dataset.col("userId"));
@@ -122,7 +130,7 @@ public class PositiveSpark implements Serializable {
 		// dataset.collectAsList().forEach( x ->
 		// System.out.println((String)x.getAs("message")));
 		// SentimentAnalyzer helloWorld = new Sentiment()
-		// JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
+	// JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
 		
