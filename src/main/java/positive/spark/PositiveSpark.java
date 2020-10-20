@@ -98,8 +98,7 @@ public class PositiveSpark implements Serializable {
 		Dataset<Row> datasetGroupingByUserIdPositive = datasetGroupingByUser.avg("positivity");
 		Dataset<Row> datasetGroupingByUserIdNegative = datasetGroupingByUser.avg("negativity");
 		
-		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive); 
-		
+		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive,"userId"); 
 		avgNegativeAndPositive.show();
 		
 		/*
