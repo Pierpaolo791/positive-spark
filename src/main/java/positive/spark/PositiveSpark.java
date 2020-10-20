@@ -103,7 +103,7 @@ public class PositiveSpark implements Serializable {
 		avgNegativeAndPositive.show();
 		
 		avgNegativeAndPositive.foreach( x -> {
-			if ( ((float) x.getAs("avg(positivity)")) < ((float) x.getAs("avg(negativity)")))
+			if ( ((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)")))
 					System.out.println("User "+x.getAs("userId")+": La negatività supera la positività");
 		});
 
