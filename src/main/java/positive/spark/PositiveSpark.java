@@ -90,74 +90,43 @@ public class PositiveSpark implements Serializable {
 
 		dataset = dataset.map((MapFunction<Row, Row>) row -> getRowWithPositivityAndNegativity(row),
 				RowEncoder.apply(getStructTypeWithPositivityAndNegativity()));
-		
+
 		dataset = dataset.withColumn("timestamp", lit(current_timestamp().cast(DataTypes.TimestampType)));
 		dataset.show();
-		
+
 		RelationalGroupedDataset datasetGroupingByUser = dataset.groupBy(dataset.col("userId"));
 		Dataset<Row> datasetGroupingByUserIdPositive = datasetGroupingByUser.avg("positivity");
 		Dataset<Row> datasetGroupingByUserIdNegative = datasetGroupingByUser.avg("negativity");
-		
-		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive,"userId"); 
+
+		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive,
+				"userId");
 		avgNegativeAndPositive.show();
 		
-		/*
-		 * RelationalGroupedDataset datasetGroupingByUser =
-		 * dataset.groupBy(dataset.col("userId"));
-		 * 
-		 * 
-		 * 
-		 * SentimentAnalyzer sentimentAnalyzer = null; try {
-		 * //System.out.println((String)dataset.collectAsList().get(0).getAs("message"))
-		 * ; sentimentAnalyzer = new
-		 * SentimentAnalyzer((String)dataset.collectAsList().get(0).getAs("message"));
-		 * sentimentAnalyzer.analyze(); } catch (IOException e) { e.printStackTrace(); }
-		 * 
-		 * dataset = dataset.withColumn("polarPositive",
-		 * lit(sentimentAnalyzer.getPolarity().get("positive")).cast(DataTypes.FloatType
-		 * ));
-		 */
+		avgNegativeAndPositive.foreach( x -> {
+			if ( ((float) x.getAs("avg(positivity)")) < ((float) x.getAs("avg(negativity)")))
+					System.out.println("User "+x.getAs("userId")+": La negatività supera la positività");
+		});
 
-		// dataset.show();
-		//RelationalGroupedDataset datasetGroupingByUser =
-		//dataset.groupBy(dataset.col("userId"));
-		//Dataset<Row> datasetGroupingByUserIdPositive =
-		 //datasetGroupingByUser.sum("polarPositive");
-		// Dataset<Row> datasetGroupingByUserIdNegative =
-		// datasetGroupingByUser.sum("polarNegative");
-		// datasetGroupingByUserIdPositive.show();
-		// dataset.collectAsList().forEach( x ->
-		// System.out.println((String)x.getAs("message")));
-		// SentimentAnalyzer helloWorld = new Sentiment()
-	// JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
+		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
-		
-	
+
 	private Row getRowWithPositivityAndNegativity(Row row) {
 		float[] posAndNeg = getPositiveAndNegativeSentimentAnalysis(row.getAs("message"));
-		return RowFactory.create(
-				row.getAs("platform"),
-				row.getAs("userId"),
-				row.getAs("message"),
-				row.getAs("groupId"),
-				posAndNeg[0],
-				posAndNeg[1]
-			);
+		return RowFactory.create(row.getAs("platform"), row.getAs("userId"), row.getAs("message"), row.getAs("groupId"),
+				posAndNeg[0], posAndNeg[1]);
 	}
-	
+
 	private StructType getStructTypeWithPositivityAndNegativity() {
-		return
-		new StructType(
-				new StructField[] { 
-						new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
+		return new StructType(
+				new StructField[] { new StructField("platform", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("userId", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("message", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("groupId", DataTypes.StringType, true, Metadata.empty()),
 						new StructField("positivity", DataTypes.FloatType, true, Metadata.empty()),
-						new StructField("negativity", DataTypes.FloatType, true, Metadata.empty())});
+						new StructField("negativity", DataTypes.FloatType, true, Metadata.empty()) });
 	}
-	
+
 	private float[] getPositiveAndNegativeSentimentAnalysis(String text) {
 		SentimentAnalyzer sentimentAnalyzer = null;
 		try {
@@ -167,10 +136,8 @@ public class PositiveSpark implements Serializable {
 			e.printStackTrace();
 		}
 		sentimentAnalyzer.analyze();
-	
-		return new float[]{
-				sentimentAnalyzer.getPolarity().get("positive"),
-				sentimentAnalyzer.getPolarity().get("negative")
-		};
+
+		return new float[] { sentimentAnalyzer.getPolarity().get("positive"),
+				sentimentAnalyzer.getPolarity().get("negative") };
 	}
 }
