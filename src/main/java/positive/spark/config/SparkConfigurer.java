@@ -29,6 +29,8 @@ public class SparkConfigurer {
 		kafkaParams.put("enable.auto.commit", false);
 		return kafkaParams;
 	}
+	
+	
 
 
 }

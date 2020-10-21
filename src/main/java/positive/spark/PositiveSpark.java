@@ -5,21 +5,16 @@ import static org.apache.spark.sql.functions.lit;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import javax.sound.sampled.LineListener;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.MapFunction;
-import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.RelationalGroupedDataset;
 import org.apache.spark.sql.Row;
@@ -48,6 +43,8 @@ public class PositiveSpark implements Serializable {
 
 	private SparkProxy spark;
 	private transient JavaStreamingContext streamingContext;
+	private KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingConfig());
+	
 
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
@@ -100,15 +97,29 @@ public class PositiveSpark implements Serializable {
 
 		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive,
 				"userId");
+		avgNegativeAndPositive = avgNegativeAndPositive.join(dataset.drop("message","timestamp","positivity","negativity"));
 		avgNegativeAndPositive.show();
 		
 		avgNegativeAndPositive.foreach( x -> {
-			if ( ((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)")))
+			if ( ((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)"))) {
 					System.out.println("User "+x.getAs("userId")+": La negatività supera la positività");
+
+			}
 		});
+		
+		
+		
+		
+		
+		
 
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
+	}
+	
+	public void sendBanAction(Row row) {
+		
+		kafkaProducer.send(new ProducerRecord<String,String>("telegram-action","Prova"));
 	}
 
 	private Row getRowWithPositivityAndNegativity(Row row) {
