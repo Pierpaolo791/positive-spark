@@ -43,7 +43,7 @@ public class PositiveSpark implements Serializable {
 
 	private SparkProxy spark;
 	private transient JavaStreamingContext streamingContext;
-	private KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingConfig());
+	//private KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingConfig());
 	
 
 	public PositiveSpark() {
@@ -119,7 +119,7 @@ public class PositiveSpark implements Serializable {
 	
 	public void sendBanAction(Row row) {
 		
-		kafkaProducer.send(new ProducerRecord<String,String>("telegram-action","Prova"));
+		//kafkaProducer.send(new ProducerRecord<String,String>("telegram-action","Prova"));
 	}
 
 	private Row getRowWithPositivityAndNegativity(Row row) {
