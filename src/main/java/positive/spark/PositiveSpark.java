@@ -32,6 +32,8 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vader.sentiment.analyzer.SentimentAnalyzer;
 
 import positive.spark.config.SparkConfigurer;
@@ -43,13 +45,14 @@ public class PositiveSpark implements Serializable {
 
 	private SparkProxy spark;
 	private transient JavaStreamingContext streamingContext;
-	//private KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingConfig());
+	private KafkaProducer<String, String> kafkaProducer; 
 	
 
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(15));
+		kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingConfig());
 		startStreamProcessing();
 
 	}
@@ -106,20 +109,30 @@ public class PositiveSpark implements Serializable {
 
 			}
 		});
-		
-		
-		
-		
-		
-		
 
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
 	
-	public void sendBanAction(Row row) {
-		
-		//kafkaProducer.send(new ProducerRecord<String,String>("telegram-action","Prova"));
+	private void sendBanAction(Row row) {
+		Message message = getMessageFromRow(row);
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonMessage="";
+		try {
+			jsonMessage = mapper.writeValueAsString(message);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		kafkaProducer.send(new ProducerRecord<String,String>("telegram-action",jsonMessage));
+	}
+	private Message getMessageFromRow(Row row) {
+		Message message = new Message();
+		message.setGroupId(row.getAs("groupId"));
+		message.setPlatform(row.getAs("platform"));
+		message.setUserId(row.getAs("userId"));
+		message.setMessage("ban");
+		return message;
 	}
 
 	private Row getRowWithPositivityAndNegativity(Row row) {

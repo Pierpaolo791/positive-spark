@@ -1,12 +1,13 @@
 package positive.spark.config;
 
-import java.util.Arrays;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.spark.SparkConf;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+
 import org.apache.kafka.common.serialization.StringDeserializer;
+
 
 public class SparkConfigurer {
 	
@@ -29,6 +30,7 @@ public class SparkConfigurer {
 		kafkaParams.put("enable.auto.commit", false);
 		return kafkaParams;
 	}
+
 	
 	
 
