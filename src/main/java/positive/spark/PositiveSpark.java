@@ -109,11 +109,11 @@ public class PositiveSpark implements Serializable {
 		avgNegativeAndPositive.foreach(x -> {
 			if (((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)"))) {
 				System.out.println("User " + x.getAs("userId") + ": La negatività supera la positività");
-
+				SparkConfigurer.sendMessageToKafka();
 			}
 		});
-
 		
+		/*
 		try {
 			avgNegativeAndPositive
 					.toDF()
@@ -125,7 +125,7 @@ public class PositiveSpark implements Serializable {
 					.start();
 		} catch (TimeoutException e) {
 			e.printStackTrace();
-		}
+		}*/
 
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 

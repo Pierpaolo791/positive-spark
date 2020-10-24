@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.spark.SparkConf;
-
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -38,6 +39,12 @@ public class SparkConfigurer {
 		kafkaParams.put("key.serializer", StringSerializer.class);
 		kafkaParams.put("value.serializer", StringSerializer.class);
 		return kafkaParams;
+	}
+	
+	public static void sendMessageToKafka() {
+		KafkaProducer<String, String>kafkaProducer = new  KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
+		kafkaProducer.send(new
+				 ProducerRecord<String,String>("telegram-action","Prova"));
 	}
 
 	
