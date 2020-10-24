@@ -40,15 +40,5 @@ public class SparkConfigurer {
 		kafkaParams.put("value.serializer", StringSerializer.class);
 		return kafkaParams;
 	}
-	
-	public static void sendMessageToKafka() {
-		KafkaProducer<String, String>kafkaProducer = new  KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
-		kafkaProducer.send(new
-				 ProducerRecord<String,String>("telegram-action","Prova"));
-	}
-
-	
-	
-
 
 }
