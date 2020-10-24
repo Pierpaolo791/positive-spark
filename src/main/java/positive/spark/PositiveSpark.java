@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -45,14 +46,14 @@ public class PositiveSpark implements Serializable {
 
 	private SparkProxy spark;
 	private transient JavaStreamingContext streamingContext;
-	private KafkaProducer<String, String> kafkaProducer; 
+	//private KafkaProducer<String, String> kafkaProducer; 
 	
 
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(15));
-		kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
+		//kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
 		startStreamProcessing();
 
 	}
@@ -80,6 +81,7 @@ public class PositiveSpark implements Serializable {
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
 		System.out.println("PRINT message stream");
 		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
+		
 		return messageStream;
 	}
 
@@ -109,7 +111,15 @@ public class PositiveSpark implements Serializable {
 
 			}
 		});
-
+		try {
+			avgNegativeAndPositive.writeStream().format("kafka")
+				.option("kafka.bootstrap.servers", "10.0.100.25:9092")
+				.option("topic", "telegram-action")
+				.start();
+		} catch (TimeoutException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
