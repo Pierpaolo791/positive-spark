@@ -35,9 +35,6 @@ public class SparkConfigurer {
 	public static Map<String, Object> getKafkaStreamingProducerConfig() {
 		Map<String, Object> kafkaParams = new HashMap<String, Object>();
 		kafkaParams.put("bootstrap.servers", "10.0.100.25:9092");
-		kafkaParams.put("group.id", "positive-spark-streaming");
-		kafkaParams.put("auto.offset.reset", "latest");
-		kafkaParams.put("enable.auto.commit", false);
 		kafkaParams.put("key.serializer", StringSerializer.class);
 		kafkaParams.put("value.serializer", StringSerializer.class);
 		return kafkaParams;
