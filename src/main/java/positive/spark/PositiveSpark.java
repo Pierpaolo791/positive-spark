@@ -112,7 +112,9 @@ public class PositiveSpark implements Serializable {
 			}
 		});
 			try {
-				avgNegativeAndPositive.writeStream().format("kafka")
+				avgNegativeAndPositive.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)").writeStream()
+					.format("kafka")
+				
 					.option("kafka.bootstrap.servers", "10.0.100.25:9092")
 					.option("topic", "telegram-action")
 					.start();
