@@ -8,11 +8,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapFunction;
@@ -73,14 +70,12 @@ public class PositiveSpark implements Serializable {
 	}
 
 	private JavaInputDStream<ConsumerRecord<String, String>> getMessageStream() {
-		System.out.println("Call getMessageStream()...");
 		Map<String, Object> kafkaParams = SparkConfigurer.getKafkaStreamingConfig();
-		Collection<String> topics = Arrays.asList("tap");
+		Collection<String> topics = Arrays.asList("telegram-message");
 		JavaInputDStream<ConsumerRecord<String, String>> messageStream = KafkaUtils.createDirectStream(streamingContext,
 				LocationStrategies.PreferConsistent(),
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
-		System.out.println("PRINT message stream");
-		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
+		System.out.println("Connect to kafka server: " + kafkaParams.get("bootstrap.servers"));
 
 		return messageStream;
 	}
@@ -108,7 +103,7 @@ public class PositiveSpark implements Serializable {
 
 		avgNegativeAndPositive.foreach(x -> {
 			if (((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)"))) {
-				System.out.println("User " + x.getAs("userId") + ": La negatività supera la positività");
+				System.out.println("User " + x.getAs("userId") + ": La negativita' supera la positivita'");
 				sendBanAction(x);
 			}
 		});
@@ -160,7 +155,6 @@ public class PositiveSpark implements Serializable {
 		try {
 			sentimentAnalyzer = new SentimentAnalyzer(text);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		sentimentAnalyzer.analyze();
