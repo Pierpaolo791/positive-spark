@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.spark.SparkConf;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 
 public class SparkConfigurer {
@@ -28,6 +29,8 @@ public class SparkConfigurer {
 		kafkaParams.put("group.id", "positive-spark-streaming");
 		kafkaParams.put("auto.offset.reset", "latest");
 		kafkaParams.put("enable.auto.commit", false);
+		kafkaParams.put("key.serializer", StringSerializer.class);
+		kafkaParams.put("value.serializer", StringSerializer.class);
 		return kafkaParams;
 	}
 
