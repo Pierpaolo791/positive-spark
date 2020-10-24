@@ -124,7 +124,8 @@ public class PositiveSpark implements Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		kafkaProducer.send(new ProducerRecord<String,String>("telegram-action",jsonMessage));
+		//kafkaProducer.send(new ProducerRecord<String,String>("telegram-action",jsonMessage));
+		System.out.println(jsonMessage);
 	}
 	private Message getMessageFromRow(Row row) {
 		Message message = new Message();
