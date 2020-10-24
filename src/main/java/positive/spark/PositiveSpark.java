@@ -46,14 +46,14 @@ public class PositiveSpark implements Serializable {
 
 	private SparkProxy spark;
 	private transient JavaStreamingContext streamingContext;
-	//private KafkaProducer<String, String> kafkaProducer; 
-	
+	// private KafkaProducer<String, String> kafkaProducer;
 
 	public PositiveSpark() {
 		spark = SparkProxy.getInstance();
 		streamingContext = new JavaStreamingContext(JavaSparkContext.fromSparkContext(spark.getSparkContext()),
 				Durations.seconds(15));
-		//kafkaProducer = new KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
+		// kafkaProducer = new
+		// KafkaProducer<>(SparkConfigurer.getKafkaStreamingProducerConfig());
 		startStreamProcessing();
 
 	}
@@ -81,7 +81,7 @@ public class PositiveSpark implements Serializable {
 				ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams));
 		System.out.println("PRINT message stream");
 		System.out.println("Connect to " + kafkaParams.get("bootstrap.servers"));
-		
+
 		return messageStream;
 	}
 
@@ -102,46 +102,40 @@ public class PositiveSpark implements Serializable {
 
 		Dataset<Row> avgNegativeAndPositive = datasetGroupingByUserIdNegative.join(datasetGroupingByUserIdPositive,
 				"userId");
-		avgNegativeAndPositive = avgNegativeAndPositive.join(dataset.drop("message","timestamp","positivity","negativity"),"userId");
+		avgNegativeAndPositive = avgNegativeAndPositive
+				.join(dataset.drop("message", "timestamp", "positivity", "negativity"), "userId");
 		avgNegativeAndPositive.show();
-		
-		avgNegativeAndPositive.foreach( x -> {
-			if ( ((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)"))) {
-					System.out.println("User "+x.getAs("userId")+": La negatività supera la positività");
+
+		avgNegativeAndPositive.foreach(x -> {
+			if (((double) x.getAs("avg(positivity)")) < ((double) x.getAs("avg(negativity)"))) {
+				System.out.println("User " + x.getAs("userId") + ": La negatività supera la positività");
 
 			}
 		});
-			try {
-				avgNegativeAndPositive
-				.selectExpr("CAST(userId AS STRING) AS key", "to_json(struct(*)) AS value")
-				.writeStream()
-					.format("kafka")
-				
-					.option("kafka.bootstrap.servers", "10.0.100.25:9092")
-					.option("topic", "telegram-action")
-					.start();
-			} catch (TimeoutException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		
+
+		avgNegativeAndPositive.selectExpr("CAST(userId AS STRING) AS key", "to_json(struct(*)) AS value").write()
+				.format("kafka")
+				.option("kafka.bootstrap.servers", "10.0.100.25:9092").option("topic", "telegram-action").save();
+
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
-	
+
 	private void sendBanAction(Row row) {
 		Message message = getMessageFromRow(row);
 		ObjectMapper mapper = new ObjectMapper();
-		String jsonMessage="";
+		String jsonMessage = "";
 		try {
 			jsonMessage = mapper.writeValueAsString(message);
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//kafkaProducer.send(new ProducerRecord<String,String>("telegram-action",jsonMessage));
+		// kafkaProducer.send(new
+		// ProducerRecord<String,String>("telegram-action",jsonMessage));
 		System.out.println(jsonMessage);
 	}
+
 	private Message getMessageFromRow(Row row) {
 		Message message = new Message();
 		message.setGroupId(row.getAs("groupId"));
