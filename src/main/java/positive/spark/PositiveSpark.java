@@ -111,15 +111,12 @@ public class PositiveSpark implements Serializable {
 
 			}
 		});
-		try {
-			avgNegativeAndPositive.writeStream().format("kafka")
+		
+			avgNegativeAndPositive.write().format("kafka")
 				.option("kafka.bootstrap.servers", "10.0.100.25:9092")
 				.option("topic", "telegram-action")
-				.start();
-		} catch (TimeoutException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+				.save();
+		
 		JavaEsSpark.saveJsonToEs(dataset.toJSON().toJavaRDD(), "tap/positive");
 
 	}
