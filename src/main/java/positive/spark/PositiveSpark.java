@@ -112,7 +112,7 @@ public class PositiveSpark implements Serializable {
 			}
 		});
 			try {
-				avgNegativeAndPositive.select("userId").writeStream()
+				avgNegativeAndPositive.selectExpr("CAST(userId AS STRING)").writeStream()
 					.format("kafka")
 				
 					.option("kafka.bootstrap.servers", "10.0.100.25:9092")
