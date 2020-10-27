@@ -12,7 +12,8 @@ public class Message implements Serializable {
 	
 	public Message() {
 	}
-	
+
+
 	public String getPlatform() {
 		return platform;
 	}
